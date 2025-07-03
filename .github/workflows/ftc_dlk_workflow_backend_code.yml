@@ -104,8 +104,6 @@ jobs:
           aws s3 cp requirements.txt s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/
           aws s3 cp src s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/ --recursive
           aws s3 cp jars s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/jars/ --recursive
-          aws s3 cp controllers s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/controllers/ --recursive
-          aws s3 cp src/drivers/driver_ingestion_sqoop.py s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/
 
           cd src
           zip -r all_utils.zip aws_utils connectors constants document_db_manager interfaces loggers secrets_managers services utils
