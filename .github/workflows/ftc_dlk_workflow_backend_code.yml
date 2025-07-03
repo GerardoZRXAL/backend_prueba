@@ -1,0 +1,129 @@
+name: FTC DLK Pipeline Backend code
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+      - main
+
+env:
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+
+jobs:
+  set-environment: 
+    runs-on: ubuntu-latest
+    outputs: 
+      current_env: ${{ steps.set_env.outputs.current_env }}
+      env_artifacts_bucket: ${{ steps.set_env.outputs.env_artifacts_bucket }}
+    steps:
+      - name: Check if prod
+        if: endsWith(github.ref, '/main')
+        run: |
+          echo "ENVIRONMENT_NAME=prod" >> $GITHUB_ENV
+          echo "ENV_ARTIFACTS_BUCKET=ftc-dlk-s3-artifacts-prod" >> $GITHUB_ENV
+      - name: Check if dev
+        if: endsWith(github.ref, '/develop')
+        run: |
+          echo "ENVIRONMENT_NAME=dev" >> $GITHUB_ENV
+          echo "ENV_ARTIFACTS_BUCKET=ftc-dlk-s3-artifacts-dev" >> $GITHUB_ENV
+      - name: Set output
+        id: set_env
+        run: |
+          echo "current_env=${{ env.ENVIRONMENT_NAME }}" >> $GITHUB_OUTPUT
+          echo "env_artifacts_bucket=${{ env.ENV_ARTIFACTS_BUCKET }}" >> $GITHUB_OUTPUT
+
+  validate:
+    name: Validate Code and Snyk
+    runs-on: ubuntu-22.04
+    needs: set-environment 
+    environment: ${{ needs.set-environment.outputs.current_env }}
+    steps:
+      - name: Checkout the repository to the runner
+        uses: actions/checkout@v4
+      
+      - name: Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install and Run Tox
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install tox
+          tox
+      # - name: Snyk Scan
+      #   uses: snyk/actions@master
+      #   with:
+      #     command: test
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #     SNYK_ORG: 0a63508d-5611-4183-b008-ead30ad265a2
+
+  deploy:
+    name: Copy Artifacts to S3
+    runs-on: ubuntu-22.04
+    needs: [set-environment, validate]
+    environment: ${{ needs.set-environment.outputs.current_env }}
+    steps:
+      - name: Checkout the repository to the runner
+        uses: actions/checkout@v4
+      
+      - name: Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build and Upload Artifacts
+        env:
+          ENV_ARTIFACTS_BUCKET: ${{ needs.set-environment.outputs.env_artifacts_bucket }}
+        run: |
+          pip3 install wheel setuptools
+          python3 setup.py sdist bdist_wheel
+          ls dist
+
+          aws s3 cp dist/*.whl s3://${ENV_ARTIFACTS_BUCKET}/glue/
+          aws s3 cp requirements.txt s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/
+          aws s3 cp src s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/ --recursive
+          aws s3 cp jars s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/jars/ --recursive
+          aws s3 cp controllers s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/controllers/ --recursive
+          aws s3 cp src/drivers/driver_ingestion_sqoop.py s3://${ENV_ARTIFACTS_BUCKET}/datazone/ingestion_sqoop/
+
+          cd src
+          zip -r all_utils.zip aws_utils connectors constants document_db_manager interfaces loggers secrets_managers services utils
+          aws s3 cp drivers s3://${ENV_ARTIFACTS_BUCKET}/datazone/app/ --recursive
+          aws s3 cp all_utils.zip s3://${ENV_ARTIFACTS_BUCKET}/datazone/glue/
+
+          # Nuevos paths
+          aws s3 cp all_utils.zip s3://${ENV_ARTIFACTS_BUCKET}/glue/general_utils/
+          aws s3 cp drivers/driver_ingestion.py s3://${ENV_ARTIFACTS_BUCKET}/glue/extraction/
+          aws s3 cp drivers/driver_ingestion_sqoop.py s3://${ENV_ARTIFACTS_BUCKET}/glue/extraction/
+          aws s3 cp drivers/driver_compaction_iceberg_tealium_history.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
+          aws s3 cp drivers/driver_compaction_iceberg.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
+          aws s3 cp drivers/driver_compaction_streaming_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
+          aws s3 cp drivers/driver_dq_rule_dynamo.py s3://${ENV_ARTIFACTS_BUCKET}/glue/quality/
+          aws s3 cp drivers/driver_dq_rule_glue.py s3://${ENV_ARTIFACTS_BUCKET}/glue/quality/
+          aws s3 cp drivers/driver_history_copy_data.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
+          aws s3 cp drivers/driver_history_load_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
+          aws s3 cp drivers/driver_history_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
+          aws s3 cp drivers/driver_replication_rt_visitors_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
+          aws s3 cp drivers/driver_history_amplitude.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
+          aws s3 cp drivers/driver_data_lifecycle.py s3://${ENV_ARTIFACTS_BUCKET}/glue/control/
