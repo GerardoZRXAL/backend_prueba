@@ -30,7 +30,7 @@ jobs:
         if: endsWith(github.ref, '/develop')
         run: |
           echo "ENVIRONMENT_NAME=dev" >> $GITHUB_ENV
-          echo "ENV_ARTIFACTS_BUCKET=ftc-dlk-s3-artifacts-dev" >> $GITHUB_ENV
+          echo "ENV_ARTIFACTS_BUCKET=prueba-bucket-artifacts" >> $GITHUB_ENV
       - name: Set output
         id: set_env
         run: |
