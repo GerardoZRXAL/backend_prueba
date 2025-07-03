@@ -1,0 +1,30 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+
+# Sensitive variales
+terraform/*.tfvars
+terraform/*.tfvars.json
+
+# Excecution plans
+terraform/*.tfplan
+
+# temp files
+terraform/crash.log
+terraform/*.log
+terraform/terraform.tfstate.backup
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__
+__pycache__/*
