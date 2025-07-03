@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 ===================================================================================================
-Autor:          Jose Andres Amezcua Garcia
+Autor:          Xaldigital
 Proyecto:       Datalake Back
 Proceso:        common_utils
 Descripcion: 	Utileria comunes utilizadas en el proyecto.
-Modificacion:
-                2024-01-25 - Creación
 ===================================================================================================
 """
 import json
