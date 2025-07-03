@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 ===================================================================================================
-Autor:          Fernando Colazo
+Autor:          Xaldigital
 Proyecto:       Datalake Back
 Proceso:        Configuración del paquete.
 Descripcion: 	Este script configura el paquete utilizando setuptools. Define el nombre, la versión
 los paquetes incluidos y otras configuraciones necesarias.
-Modificacion:
-                2024-08-11 - Creación
 ===================================================================================================
 """
 
