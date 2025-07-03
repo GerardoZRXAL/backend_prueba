@@ -110,18 +110,3 @@ jobs:
           aws s3 cp drivers s3://${ENV_ARTIFACTS_BUCKET}/datazone/app/ --recursive
           aws s3 cp all_utils.zip s3://${ENV_ARTIFACTS_BUCKET}/datazone/glue/
 
-          # Nuevos paths
-          aws s3 cp all_utils.zip s3://${ENV_ARTIFACTS_BUCKET}/glue/general_utils/
-          aws s3 cp drivers/driver_ingestion.py s3://${ENV_ARTIFACTS_BUCKET}/glue/extraction/
-          aws s3 cp drivers/driver_ingestion_sqoop.py s3://${ENV_ARTIFACTS_BUCKET}/glue/extraction/
-          aws s3 cp drivers/driver_compaction_iceberg_tealium_history.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
-          aws s3 cp drivers/driver_compaction_iceberg.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
-          aws s3 cp drivers/driver_compaction_streaming_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/compaction/
-          aws s3 cp drivers/driver_dq_rule_dynamo.py s3://${ENV_ARTIFACTS_BUCKET}/glue/quality/
-          aws s3 cp drivers/driver_dq_rule_glue.py s3://${ENV_ARTIFACTS_BUCKET}/glue/quality/
-          aws s3 cp drivers/driver_history_copy_data.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
-          aws s3 cp drivers/driver_history_load_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
-          aws s3 cp drivers/driver_history_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
-          aws s3 cp drivers/driver_replication_rt_visitors_tealium.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
-          aws s3 cp drivers/driver_history_amplitude.py s3://${ENV_ARTIFACTS_BUCKET}/glue/custom/
-          aws s3 cp drivers/driver_data_lifecycle.py s3://${ENV_ARTIFACTS_BUCKET}/glue/control/
